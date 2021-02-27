@@ -26,6 +26,7 @@ module Blog
 
     # Add lib to loaded paths
     config.autoload_paths << Rails.root.join('lib')
+    config.autoload_paths << Rails.root.join('app/commands')
 
     # Configuration for the application, engines, and railties goes here.
     #
