@@ -188,6 +188,7 @@ GEM
       rubocop (~> 1.0)
       rubocop-ast (>= 1.1.0)
     ruby-progressbar (1.11.0)
+    simple_command (0.1.0)
     solargraph (0.40.3)
       backport (~> 1.1)
       benchmark
@@ -237,6 +238,7 @@ DEPENDENCIES
   rspec-rails (~> 4.0.1)
   rubocop-rails
   rubocop-rspec
+  simple_command
   solargraph
   spring
   tzinfo-data
