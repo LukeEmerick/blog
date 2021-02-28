@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 describe UsersController, type: :controller do
-  describe '#get' do
+  describe '#index' do
     context 'when user is authenticated' do
       before(:context) do
         @user = create(:user, email: 'developer@developers.com', password: 'developer')
@@ -40,12 +40,69 @@ describe UsersController, type: :controller do
         expect(JSON.parse(response.body)).to eq('message' => 'Token não encontrado')
       end
 
-      it 'fails with and invalid token' do
+      it 'fails with an invalid token' do
         request.headers.merge!(Authorization: 'invalid_token')
         get :index, params: {}
 
         expect(response).to have_http_status(:unauthorized)
         expect(JSON.parse(response.body)).to eq('message' => 'Token expirado ou inválido')
+      end
+    end
+  end
+
+  describe '#show' do
+    context 'when user is authenticated' do
+      before(:context) do
+        @user = create(:user, email: 'developer@developers.com', password: 'developer')
+        command = AuthenticateUser.call(@user.email, @user.password)
+        @token = command.result
+      end
+
+      # remove created user because it's not automatically rolled back
+      after(:context) do
+        user = User.find_by(email: 'developer@developers.com')
+        user.delete
+      end
+
+      let(:user_data) do
+        {
+          'id' => @user.id,
+          'displayName' => @user.displayName,
+          'email' => @user.email,
+          'image' => @user.image
+        }
+      end
+
+      it 'renders user list with token and a valid id' do
+        request.headers.merge!(Authorization: @token)
+        get :show, params: { id: @user.id }
+
+        expect(response).to have_http_status(:ok)
+        body = JSON.parse(response.body)
+        expect(body).to eq(user_data)
+      end
+
+      it 'fails without token' do
+        get :show, params: { id: @user.id }
+
+        expect(response).to have_http_status(:unauthorized)
+        expect(JSON.parse(response.body)).to eq('message' => 'Token não encontrado')
+      end
+
+      it 'fails with an invalid token' do
+        request.headers.merge!(Authorization: 'invalid_token')
+        get :show, params: { id: @user.id }
+
+        expect(response).to have_http_status(:unauthorized)
+        expect(JSON.parse(response.body)).to eq('message' => 'Token expirado ou inválido')
+      end
+
+      it 'fails with and invalid id' do
+        request.headers.merge!(Authorization: @token)
+        get :show, params: { id: -1 }
+
+        expect(response).to have_http_status(:not_found)
+        expect(JSON.parse(response.body)).to eq('message' => 'Usuário não existe')
       end
     end
   end
