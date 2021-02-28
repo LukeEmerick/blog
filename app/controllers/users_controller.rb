@@ -4,13 +4,12 @@ class UsersController < ApplicationController
 
   # GET /users
   def index
-    users = User.select(:id, :displayName, :email, :image)
-    render json: users
+    @users = User.all
   end
 
   # GET /users/1
   def show
-    render json: @user
+    render json: { message: 'Usuário não existe' }, status: :not_found and return if @user.blank?
   end
 
   # POST /users
@@ -35,7 +34,7 @@ class UsersController < ApplicationController
   # PATCH/PUT /users/1
   def update
     if @user.update(user_params)
-      render json: @user
+      render 'show.json'
     else
       render json: @user.errors, status: :unprocessable_entity
     end
@@ -50,7 +49,7 @@ class UsersController < ApplicationController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_user
-    @user = User.find(params[:id])
+    @user = User.find_by(id: params[:id])
   end
 
   def user_params
