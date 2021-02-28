@@ -39,3 +39,9 @@ en:
               blank: is required
             email:
               blank: is required
+        post:
+          attributes:
+            title:
+              blank: is required
+            content:
+              blank: is required
