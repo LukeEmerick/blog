@@ -22,8 +22,8 @@ describe PostsController, type: :controller do
     let(:post_response) do
       {
         'id' => post.id,
-        'published' => '2011-08-01T19:58:00Z',
-        'updated' => '2011-08-01T19:58:51Z',
+        'published' => '2011-08-01T19:58:00.000Z',
+        'updated' => '2011-08-01T19:58:51.947Z',
         'title' => post.title,
         'content' => post.content,
         'user' => {

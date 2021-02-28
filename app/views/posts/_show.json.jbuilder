@@ -1,6 +1,6 @@
 json.id post.id
-json.published post.created_at.rfc3339
-json.updated post.updated_at.rfc3339
+json.published post.created_at.as_json
+json.updated post.updated_at.as_json
 json.title post.title
 json.content post.content
 
