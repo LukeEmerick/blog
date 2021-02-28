@@ -1,1 +1,1 @@
-json.call(@user, :id, :displayName, :email, :image)
+json.partial! 'users/show', user: @user
