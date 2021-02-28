@@ -16,6 +16,61 @@ describe PostsController, type: :controller do
     user.delete
   end
 
+  describe '#show' do
+    let!(:post) { create(:post, created_at: '2011-08-01T19:58:00.000Z', updated_at: '2011-08-01T19:58:51.947Z') }
+
+    let(:post_response) do
+      {
+        'id' => post.id,
+        'published' => '2011-08-01T19:58:00.000Z',
+        'updated' => '2011-08-01T19:58:51.947Z',
+        'title' => post.title,
+        'content' => post.content,
+        'user' => {
+          'id' => post.user_id,
+          'displayName' => post.user.displayName,
+          'email' => post.user.email,
+          'image' => post.user.image
+        }
+      }
+    end
+
+    context 'when good params are given' do
+      it 'renders a successful with a valid id' do
+        request.headers.merge!(Authorization: @token)
+        get :show, params: { id: post.id }
+
+        expect(response).to have_http_status(:ok)
+        expect(JSON.parse(response.body)).to eq(post_response)
+      end
+    end
+
+    context 'when bad params are given' do
+      it 'fails with and invalid id' do
+        request.headers.merge!(Authorization: @token)
+        get :show, params: { id: -1 }
+
+        expect(response).to have_http_status(:not_found)
+        expect(JSON.parse(response.body)).to eq('message' => 'Post não existe')
+      end
+
+      it 'fails without auth token' do
+        get :show, params: { id: post.id }
+
+        expect(response).to have_http_status(:unauthorized)
+        expect(JSON.parse(response.body)).to eq('message' => 'Token não encontrado')
+      end
+
+      it 'fails with an invalid token' do
+        request.headers.merge!(Authorization: 'invalid_token')
+        get :show, params: { id: post.id }
+
+        expect(response).to have_http_status(:unauthorized)
+        expect(JSON.parse(response.body)).to eq('message' => 'Token expirado ou inválido')
+      end
+    end
+  end
+
   describe '#create' do
     context 'when good params are given' do
       let(:good_params) do
@@ -25,7 +80,7 @@ describe PostsController, type: :controller do
         }
       end
 
-      it 'renders a successful response for a new email' do
+      it 'renders a successful response' do
         request.headers.merge!(Authorization: @token)
         post :create, params: good_params
 
