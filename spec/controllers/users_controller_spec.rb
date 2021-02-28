@@ -17,10 +17,10 @@ describe UsersController, type: :controller do
 
       let(:user_data) do
         {
-          id: @user.id,
-          displayName: @user.displayName,
-          email: @user.email,
-          image: @user.image
+          'id' => @user.id,
+          'displayName' => @user.displayName,
+          'email' => @user.email,
+          'image' => @user.image
         }
       end
 
