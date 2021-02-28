@@ -18,12 +18,19 @@ describe PostsController, type: :controller do
 
   describe '#create' do
     context 'when good params are given' do
+      let(:good_params) do
+        {
+          'title' => 'title text',
+          'content' => 'content text'
+        }
+      end
+
       it 'renders a successful response for a new email' do
         request.headers.merge!(Authorization: @token)
-        post :create, params: { title: 'title text', content: 'content text' }
+        post :create, params: good_params
 
         expect(response).to have_http_status(:created)
-        expect(JSON.parse(response.body)).to eq(good_params.merge('userID', @user.id))
+        expect(JSON.parse(response.body)).to eq(good_params.merge({ 'userId' => @user.id }))
       end
     end
 
