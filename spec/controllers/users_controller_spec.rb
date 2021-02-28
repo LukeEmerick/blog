@@ -1,6 +1,55 @@
 require 'rails_helper'
 
 describe UsersController, type: :controller do
+  describe '#get' do
+    context 'when user is authenticated' do
+      before(:context) do
+        @user = create(:user, email: 'developer@developers.com', password: 'developer')
+        command = AuthenticateUser.call(@user.email, @user.password)
+        @token = command.result
+      end
+
+      # remove created user because it's not automatically rolled back
+      after(:context) do
+        user = User.find_by(email: 'developer@developers.com')
+        user.delete
+      end
+
+      let(:user_data) do
+        {
+          id: @user.id,
+          displayName: @user.displayName,
+          email: @user.email,
+          image: @user.image
+        }
+      end
+
+      it 'renders user list with token' do
+        request.headers.merge!(Authorization: @token)
+        get :index, params: {}
+
+        expect(response).to have_http_status(:ok)
+        body = JSON.parse(response.body)
+        expect(body).to eq([user_data])
+      end
+
+      it 'fails without token' do
+        get :index, params: {}
+
+        expect(response).to have_http_status(:unauthorized)
+        expect(JSON.parse(response.body)).to eq('message' => 'Token não encontrado')
+      end
+
+      it 'fails with and invalid token' do
+        request.headers.merge!(Authorization: 'invalid_token')
+        get :index, params: {}
+
+        expect(response).to have_http_status(:unauthorized)
+        expect(JSON.parse(response.body)).to eq('message' => 'Token expirado ou inválido')
+      end
+    end
+  end
+
   describe '#create' do
     context 'when good params are given' do
       let!(:user) { create :user }
