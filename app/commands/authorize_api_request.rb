@@ -12,8 +12,10 @@ class AuthorizeApiRequest
   private
 
   def user
+    return errors.add(:token, 'Token não encontrado') if @headers['Authorization'].blank?
+
     @user ||= User.find(decoded_auth_token[:user_id]) if decoded_auth_token
-    @user || errors.add(:token, 'Invalid token') && nil
+    @user || errors.add(:token, 'Token expirado ou inválido')
   end
 
   def decoded_auth_token
@@ -21,12 +23,6 @@ class AuthorizeApiRequest
   end
 
   def http_auth_header
-    if @headers['Authorization'].present?
-      return @headers['Authorization'].split(' ').last
-    else
-      errors.add(:token, 'Token não encontrado')
-    end
-
-    nil
+    @headers['Authorization'].split(' ').last
   end
 end
