@@ -89,38 +89,113 @@ describe PostsController, type: :controller do
       end
     end
 
-    describe '#create' do
-      context 'when bad params are given' do
-        it 'fails without a titlle' do
-          request.headers.merge!(Authorization: @token)
-          post :create, params: { content: 'content text' }
+    context 'when bad params are given' do
+      it 'fails without a titlle' do
+        request.headers.merge!(Authorization: @token)
+        post :create, params: { content: 'content text' }
 
-          expect(response).to have_http_status(:bad_request)
-          expect(JSON.parse(response.body)).to eq('message' => '"title" is required')
-        end
+        expect(response).to have_http_status(:bad_request)
+        expect(JSON.parse(response.body)).to eq('message' => '"title" is required')
+      end
 
-        it 'fails without content' do
-          request.headers.merge!(Authorization: @token)
-          post :create, params: { title: 'title text' }
+      it 'fails without content' do
+        request.headers.merge!(Authorization: @token)
+        post :create, params: { title: 'title text' }
 
-          expect(response).to have_http_status(:bad_request)
-          expect(JSON.parse(response.body)).to eq('message' => '"content" is required')
-        end
+        expect(response).to have_http_status(:bad_request)
+        expect(JSON.parse(response.body)).to eq('message' => '"content" is required')
+      end
 
-        it 'fails without auth token' do
-          post :create, params: { title: 'title text', content: 'content text' }
+      it 'fails without auth token' do
+        post :create, params: { title: 'title text', content: 'content text' }
 
-          expect(response).to have_http_status(:unauthorized)
-          expect(JSON.parse(response.body)).to eq('message' => 'Token não encontrado')
-        end
+        expect(response).to have_http_status(:unauthorized)
+        expect(JSON.parse(response.body)).to eq('message' => 'Token não encontrado')
+      end
 
-        it 'fails with an invalid token' do
-          request.headers.merge!(Authorization: 'invalid_token')
-          post :create, params: { title: 'title text', content: 'content text' }
+      it 'fails with an invalid token' do
+        request.headers.merge!(Authorization: 'invalid_token')
+        post :create, params: { title: 'title text', content: 'content text' }
 
-          expect(response).to have_http_status(:unauthorized)
-          expect(JSON.parse(response.body)).to eq('message' => 'Token expirado ou inválido')
-        end
+        expect(response).to have_http_status(:unauthorized)
+        expect(JSON.parse(response.body)).to eq('message' => 'Token expirado ou inválido')
+      end
+    end
+  end
+
+  describe '#update' do
+    let!(:my_post) { create(:post, user: @user) }
+    let!(:their_post) { create(:post) }
+
+    context 'when good params are given' do
+      let(:good_info) do
+        {
+          'title' => 'edited title text',
+          'content' => 'edited content text'
+        }
+      end
+
+      let(:good_params) do
+        good_info.merge({ 'id' => my_post.id })
+      end
+
+      let(:expected_response) do
+        good_info.merge({ 'userId' => @user.id })
+      end
+
+      let(:their_post_params) do
+        good_info.merge({ 'id' => their_post.id })
+      end
+
+      it 'renders a successful response for a owned post' do
+        request.headers.merge!(Authorization: @token)
+        put :update, params: good_params
+
+        expect(response).to have_http_status(:ok)
+        expect(JSON.parse(response.body)).to eq(expected_response)
+      end
+
+      it 'fails on a post owned by someone else' do
+        request.headers.merge!(Authorization: @token)
+        put :update, params: their_post_params
+
+        expect(response).to have_http_status(:unauthorized)
+        expect(JSON.parse(response.body)).to eq('message' => 'Usuário não autorizado')
+      end
+    end
+
+    context 'when bad params are given' do
+      let!(:my_post) { create(:post, user: @user) }
+
+      it 'fails without a title' do
+        request.headers.merge!(Authorization: @token)
+        put :update, params: { id: my_post.id, content: 'content text' }
+
+        expect(response).to have_http_status(:bad_request)
+        expect(JSON.parse(response.body)).to eq('message' => '"title" is required')
+      end
+
+      it 'fails without content' do
+        request.headers.merge!(Authorization: @token)
+        put :update, params: { id: my_post.id, title: 'title text' }
+
+        expect(response).to have_http_status(:bad_request)
+        expect(JSON.parse(response.body)).to eq('message' => '"content" is required')
+      end
+
+      it 'fails without auth token' do
+        put :update, params: { id: my_post.id, title: 'title text', content: 'content text' }
+
+        expect(response).to have_http_status(:unauthorized)
+        expect(JSON.parse(response.body)).to eq('message' => 'Token não encontrado')
+      end
+
+      it 'fails with an invalid token' do
+        request.headers.merge!(Authorization: 'invalid_token')
+        put :update, params: { id: my_post.id, title: 'title text', content: 'content text' }
+
+        expect(response).to have_http_status(:unauthorized)
+        expect(JSON.parse(response.body)).to eq('message' => 'Token expirado ou inválido')
       end
     end
   end
