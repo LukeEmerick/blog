@@ -7,5 +7,7 @@ class User < ApplicationRecord
                        if: :password_digest_changed?
 
   validates :displayName, length: { minimum: 8, message: 'length must be at least 8 characters long' }
-  validates :email, uniqueness: true, format: { with: /\A(.+)@(.+)\Z/, message: '"email" must be a valid email' }
+
+  validates :email, uniqueness: true, presence: true,
+                    format: { with: /\A(.+)@(.+)\Z/, message: 'must be a valid email' }
 end
