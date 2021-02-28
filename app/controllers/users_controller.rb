@@ -1,5 +1,6 @@
 class UsersController < ApplicationController
-  before_action :set_user, only: [:show, :update, :destroy]
+  skip_before_action :authenticate_request, only: :create
+  before_action :set_user, only: %i[show update destroy]
 
   # GET /users
   def index
@@ -15,12 +16,20 @@ class UsersController < ApplicationController
 
   # POST /users
   def create
+    if User.find_by(email: user_params[:email])
+      render json: { message: 'Usuário já existe' },
+             status: :conflict and return
+    end
+
     @user = User.new(user_params)
 
     if @user.save
-      render json: @user, status: :created, location: @user
+      command = AuthenticateUser.call(user_params[:email], user_params[:password])
+
+      render json: { token: command.result }, status: :created, location: @user
     else
-      render json: @user.errors, status: :unprocessable_entity
+      attribute, errors = @user.errors.messages.first
+      render json: { message: "\"#{attribute}\" #{errors.first}" }, status: :bad_request
     end
   end
 
@@ -39,13 +48,13 @@ class UsersController < ApplicationController
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_user
-      @user = User.find(params[:id])
-    end
 
-    # Only allow a list of trusted parameters through.
-    def user_params
-      params.require(:user).permit(:displayName, :email, :image, :password_digest)
-    end
+  # Use callbacks to share common setup or constraints between actions.
+  def set_user
+    @user = User.find(params[:id])
+  end
+
+  def user_params
+    @user_params ||= params.permit(:displayName, :email, :image, :password)
+  end
 end
