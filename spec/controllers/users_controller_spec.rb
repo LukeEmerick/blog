@@ -1,6 +1,10 @@
 require 'rails_helper'
 
 describe UsersController, type: :controller do
+  before do
+    request.env['HTTP_ACCEPT'] = 'application/json'
+  end
+
   describe '#index' do
     context 'when user is authenticated' do
       before(:context) do
