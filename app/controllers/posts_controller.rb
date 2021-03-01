@@ -37,6 +37,9 @@ class PostsController < ApplicationController
 
   # DELETE /posts/1
   def destroy
+    render json: { message: 'Post não existe' }, status: :not_found and return if Post.find_by(id: params[:id]).blank?
+    render json: { message: 'Usuário não autorizado' }, status: :unauthorized and return if @post.blank?
+
     @post.destroy
   end
 
