@@ -5,20 +5,19 @@ describe UsersController, type: :controller do
     request.env['HTTP_ACCEPT'] = 'application/json'
   end
 
+  before(:all) do
+    @user = create(:user, email: 'developer@developers.com', password: 'developer')
+    command = AuthenticateUser.call(@user.email, @user.password)
+    @token = command.result
+  end
+
+  after(:all) do
+    user = User.find_by(email: 'developer@developers.com')
+    user.delete
+  end
+
   describe '#index' do
     context 'when user is authenticated' do
-      before(:context) do
-        @user = create(:user, email: 'developer@developers.com', password: 'developer')
-        command = AuthenticateUser.call(@user.email, @user.password)
-        @token = command.result
-      end
-
-      # remove created user because it's not automatically rolled back
-      after(:context) do
-        user = User.find_by(email: 'developer@developers.com')
-        user.delete
-      end
-
       let(:user_data) do
         {
           'id' => @user.id,
@@ -56,18 +55,6 @@ describe UsersController, type: :controller do
 
   describe '#show' do
     context 'when user is authenticated' do
-      before(:context) do
-        @user = create(:user, email: 'developer@developers.com', password: 'developer')
-        command = AuthenticateUser.call(@user.email, @user.password)
-        @token = command.result
-      end
-
-      # remove created user because it's not automatically rolled back
-      after(:context) do
-        user = User.find_by(email: 'developer@developers.com')
-        user.delete
-      end
-
       let(:user_data) do
         {
           'id' => @user.id,
@@ -198,6 +185,33 @@ describe UsersController, type: :controller do
 
         expect(response).to have_http_status(:bad_request)
         expect(JSON.parse(response.body)).to eq({ 'message' => '"password" is required' })
+      end
+    end
+  end
+
+  describe '#delete_me' do
+    context 'when user is authenticated' do
+      it 'destroys user, returns nothing' do
+        request.headers.merge!(Authorization: @token)
+        delete :me, params: {}
+
+        expect(response).to have_http_status(:no_content)
+        expect(response.body).to be_blank
+      end
+
+      it 'fails without token' do
+        delete :me, params: {}
+
+        expect(response).to have_http_status(:unauthorized)
+        expect(JSON.parse(response.body)).to eq('message' => 'Token não encontrado')
+      end
+
+      it 'fails with an invalid token' do
+        request.headers.merge!(Authorization: 'invalid_token')
+        delete :me, params: {}
+
+        expect(response).to have_http_status(:unauthorized)
+        expect(JSON.parse(response.body)).to eq('message' => 'Token expirado ou inválido')
       end
     end
   end
