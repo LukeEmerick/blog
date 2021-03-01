@@ -199,4 +199,54 @@ describe PostsController, type: :controller do
       end
     end
   end
+
+  describe '#delete' do
+    let!(:my_post) { create(:post, user: @user) }
+    let!(:their_post) { create(:post) }
+
+    context 'when good params are given' do
+      it 'destroys post, returns nothing' do
+        request.headers.merge!(Authorization: @token)
+        delete :destroy, params: { id: my_post.id }
+
+        expect(response).to have_http_status(:no_content)
+        expect(response.body).to be_blank
+      end
+
+      it 'fails on a post owned by someone else' do
+        request.headers.merge!(Authorization: @token)
+        delete :destroy, params: { id: their_post.id }
+
+        expect(response).to have_http_status(:unauthorized)
+        expect(JSON.parse(response.body)).to eq('message' => 'Usuário não autorizado')
+      end
+    end
+
+    context 'when bad params are given' do
+      let!(:my_post) { create(:post, user: @user) }
+
+      it 'fails without a valid post' do
+        request.headers.merge!(Authorization: @token)
+        delete :destroy, params: { id: -1 }
+
+        expect(response).to have_http_status(:not_found)
+        expect(JSON.parse(response.body)).to eq('message' => 'Post não existe')
+      end
+
+      it 'fails without auth token' do
+        delete :destroy, params: { id: my_post.id }
+
+        expect(response).to have_http_status(:unauthorized)
+        expect(JSON.parse(response.body)).to eq('message' => 'Token não encontrado')
+      end
+
+      it 'fails with an invalid token' do
+        request.headers.merge!(Authorization: 'invalid_token')
+        delete :destroy, params: { id: my_post.id }
+
+        expect(response).to have_http_status(:unauthorized)
+        expect(JSON.parse(response.body)).to eq('message' => 'Token expirado ou inválido')
+      end
+    end
+  end
 end
