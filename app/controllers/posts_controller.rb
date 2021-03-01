@@ -1,5 +1,5 @@
 class PostsController < ApplicationController
-  before_action :set_post, only: %i[show update destroy]
+  before_action :set_post, only: %i[update destroy]
 
   # GET /posts
   def index
@@ -8,6 +8,7 @@ class PostsController < ApplicationController
 
   # GET /posts/1
   def show
+    @post = Post.find_by(id: params[:id])
     render json: { message: 'Post não existe' }, status: :not_found and return if @post.blank?
   end
 
@@ -26,11 +27,12 @@ class PostsController < ApplicationController
 
   # PATCH/PUT /posts/1
   def update
-    if @post.update(post_params)
-      render json: @post
-    else
-      render json: @post.errors, status: :unprocessable_entity
-    end
+    render json: { message: 'Usuário não autorizado' }, status: :unauthorized and return if @post.blank?
+
+    validation = ValidatePost.call(post_params)
+    render json: { message: validation.errors[:message].first }, status: :bad_request and return if validation.failure?
+
+    @post.update(post_params)
   end
 
   # DELETE /posts/1
@@ -42,7 +44,7 @@ class PostsController < ApplicationController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_post
-    @post = Post.find_by(id: params[:id])
+    @post = @current_user.posts.find_by(id: params[:id])
   end
 
   # Only allow a list of trusted parameters through.
