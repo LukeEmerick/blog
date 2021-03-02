@@ -249,4 +249,92 @@ describe PostsController, type: :controller do
       end
     end
   end
+
+  describe '#search' do
+    let!(:title_post) { create(:post, title: 'TEST Title') }
+    let!(:content_post) { create(:post, content: 'TesT conTenT.') }
+
+    let(:title_post_data) do
+      {
+        'id' => title_post.id,
+        'published' => title_post.created_at.as_json,
+        'updated' => title_post.updated_at.as_json,
+        'title' => 'TEST Title',
+        'content' => title_post.content,
+        'user' => {
+          'id' => title_post.user_id,
+          'displayName' => title_post.user.displayName,
+          'email' => title_post.user.email,
+          'image' => title_post.user.image
+        }
+      }
+    end
+
+    let(:content_post_data) do
+      {
+        'id' => content_post.id,
+        'published' => content_post.created_at.as_json,
+        'updated' => content_post.updated_at.as_json,
+        'title' => content_post.title,
+        'content' => 'TesT conTenT.',
+        'user' => {
+          'id' => content_post.user_id,
+          'displayName' => content_post.user.displayName,
+          'email' => content_post.user.email,
+          'image' => content_post.user.image
+        }
+      }
+    end
+
+    context 'when good params are given' do
+      it 'finds post by title' do
+        request.headers.merge!(Authorization: @token)
+        get :search, params: { q: 'test title' }
+
+        expect(response).to have_http_status(:ok)
+        expect(JSON.parse(response.body)).to eq([title_post_data])
+      end
+
+      it 'finds post by content' do
+        request.headers.merge!(Authorization: @token)
+        get :search, params: { q: 'test content.' }
+
+        expect(response).to have_http_status(:ok)
+        expect(JSON.parse(response.body)).to eq([content_post_data])
+      end
+
+      it 'finds all posts with a blank search' do
+        request.headers.merge!(Authorization: @token)
+        get :search, params: { q: '' }
+
+        expect(response).to have_http_status(:ok)
+        expect(JSON.parse(response.body)).to eq([title_post_data, content_post_data])
+      end
+
+      it "finds no posts with a search that doesn't match titles nor contents" do
+        request.headers.merge!(Authorization: @token)
+        get :search, params: { q: 'There is no title nor content like this' }
+
+        expect(response).to have_http_status(:ok)
+        expect(JSON.parse(response.body)).to eq([])
+      end
+    end
+
+    context 'when bad params are given' do
+      it 'fails without auth token' do
+        get :search, params: { q: '' }
+
+        expect(response).to have_http_status(:unauthorized)
+        expect(JSON.parse(response.body)).to eq('message' => 'Token não encontrado')
+      end
+
+      it 'fails with an invalid token' do
+        request.headers.merge!(Authorization: 'invalid_token')
+        get :search, params: { q: '' }
+
+        expect(response).to have_http_status(:unauthorized)
+        expect(JSON.parse(response.body)).to eq('message' => 'Token expirado ou inválido')
+      end
+    end
+  end
 end
