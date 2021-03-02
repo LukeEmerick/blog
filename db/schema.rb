@@ -19,7 +19,6 @@ ActiveRecord::Schema.define(version: 2021_02_27_044425) do
     t.string "title"
     t.text "content"
     t.bigint "user_id", null: false
-    t.datetime "published_at"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["user_id"], name: "index_posts_on_user_id"
@@ -32,6 +31,7 @@ ActiveRecord::Schema.define(version: 2021_02_27_044425) do
     t.string "password_digest"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.index ["email"], name: "index_users_on_email", unique: true
   end
 
   add_foreign_key "posts", "users"
