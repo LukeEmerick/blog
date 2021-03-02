@@ -52,7 +52,7 @@ after this you can send your rest requests to `http://localhost:3000/`
 
 Create user
 ```shell
-curl --location --request POST 'http://localhost:3000/users' \
+curl --location --request POST 'http://localhost:3000/user' \
 --header 'Content-Type: application/json' \
 --data-raw '{
     "email": "asome@email.com",
@@ -63,7 +63,7 @@ curl --location --request POST 'http://localhost:3000/users' \
 
 Create post, use the received token on the authorization header
 ```shell
-curl --location --request POST 'localhost:3000/posts' \
+curl --location --request POST 'localhost:3000/post' \
 --header 'Authorization: eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoxMSwiZXhwIjoxNjE0NzM0MDMzfQ.7e5LYnglYKrJS0RrqmSaoaXTIZ4JZsaNj1vaUh_JNLY' \
 --header 'Content-Type: application/json' \
 --data-raw '{
