@@ -43,7 +43,25 @@ class PostsController < ApplicationController
     @post.destroy
   end
 
+  def search
+    @search_term = params[:q]
+
+    @posts = if @search_term.blank?
+               Post.all
+             else
+               search_helper
+             end
+  end
+
   private
+
+  # Take posts from title or content
+  def search_helper
+    downcased_search = @search_term.downcase
+    posts_from_title = Post.where('lower(title) = ?', downcased_search)
+
+    posts_from_title.presence || Post.where('lower(content) = ?', downcased_search)
+  end
 
   # Use callbacks to share common setup or constraints between actions.
   def set_post
