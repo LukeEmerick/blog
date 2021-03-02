@@ -1,11 +1,11 @@
 Rails.application.routes.draw do
   post 'login', to: 'authentication#login'
 
-  resources :posts do
-    get 'search', on: :collection
+  resources :user, controller: 'users', only: %i[index show create] do
+    delete 'me', on: :collection
   end
 
-  resources :users do
-    delete 'me', on: :collection
+  resources :post, controller: 'posts' do
+    get 'search', on: :collection
   end
 end
