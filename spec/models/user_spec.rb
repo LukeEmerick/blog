@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe User, type: :model do
-  it 'is valid with valid attributes' do
+  it 'is valid with valid required attributes' do
     user = described_class.new(
       displayName: 'rubens silva',
       email: 'rubinho2@gmail.com',
