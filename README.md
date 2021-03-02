@@ -1,24 +1,79 @@
-# README
+# Blog
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+A simple api blog project to manage users and posts
 
-Things you may want to cover:
+### Prerequisites
 
-* Ruby version
+* [ruby-3.0](https://www.ruby-lang.org/en/documentation/installation/)
+* [bundler-2.2.3](https://bundler.io/)
+* [postgres](https://computingforgeeks.com/how-to-install-postgresql-13-on-ubuntu)
 
-* System dependencies
 
-* Configuration
+### Installing
 
-* Database creation
+Install gems
 
-* Database initialization
+```shell
+$ bundle install
+```
 
-* How to run the test suite
+Create database
 
-* Services (job queues, cache servers, search engines, etc.)
+```shell
+rails db:create
+```
 
-* Deployment instructions
+Run migrations
 
-* ...
+```shell
+rails db:migrate
+```
+
+Make sure postgres is running, if your Linux distribution uses systemd, you can use:
+
+```shell
+systemctl status postgresql
+```
+
+If you need it, restart
+
+```shell
+systemctl restart postgresql
+```
+
+Run server
+
+```shell
+rails s
+```
+after this you can send your rest requests to `http://localhost:3000/`
+
+## Examples
+
+Create user
+```shell
+curl --location --request POST 'http://localhost:3000/users' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "email": "asome@email.com",
+    "displayName": "Namest Name",
+    "password": "some password"
+}'
+```
+
+Create post, use the received token on the authorization header
+```shell
+curl --location --request POST 'localhost:3000/posts' \
+--header 'Authorization: eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoxMSwiZXhwIjoxNjE0NzM0MDMzfQ.7e5LYnglYKrJS0RrqmSaoaXTIZ4JZsaNj1vaUh_JNLY' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "title": "A good title",
+    "content": "Some content"
+}'
+```
+
+## Running tests
+
+```shell
+bundle exec rspec
+```
